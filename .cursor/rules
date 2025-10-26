@@ -1,0 +1,102 @@
+Project: PokeTournament (Monorepo)
+Stack: Symfony 7 (PHP 8.3, MongoDB, GraphQL), Next.js 16 (TypeScript), Docker + NGINX, Playwright
+Structure: packages/backend, packages/frontend (packages/core planned)
+
+Goals for this ruleset
+- Enforce TDD across backend, frontend, and E2E.
+- Enforce DDD on the backend and Screaming Architecture on the frontend.
+- Enforce Dockerized execution for all commands and scripts.
+- Enforce clean code (SOLID, DRY, YAGNI) and modern language best practices.
+
+Golden Rules (must follow)
+1) TDD always (Red → Green → Refactor)
+   - Write a failing unit test first, make it pass with minimal code, then refactor.
+   - Prefer unit tests over integration; add E2E only for critical flows.
+   - Verify with Make targets (Dockerized):
+     - Backend unit/specs: make test-backend
+     - Frontend unit tests: make test-frontend
+     - E2E tests (Playwright Docker image): make test-e2e
+
+2) DDD/CQRS (backend)
+   - Keep domain logic out of controllers/resolvers. Domain = aggregates, value objects, policies, domain services.
+   - Application layer: commands, queries, handlers; Infrastructure: repos, GraphQL resolvers, security, persistence.
+   - Use events to update read models (standings, draft state) where applicable.
+   - Favor pure functions, value objects, and immutability in domain code.
+
+3) Screaming Architecture (frontend)
+   - Code screams features, not tech: use feature-first directories (e.g., features/tournament, features/draft, features/team).
+   - Pages (app/ routes) are thin; delegate to feature modules/components and hooks.
+   - Prefer Server Components where suitable; keep Client Components focused and small.
+   - Use Testing Library to test behavior, not implementation details.
+
+4) Dockerized everything (no host-local commands)
+   - Always run via Docker/Make. Do NOT run composer/npm/node outside containers.
+   - Shortcuts:
+     - Start/stop: make up / make down / make restart / make logs
+     - Backend console: make symfony c="about" (example)
+     - Backend composer: make composer c="install"
+     - Frontend npm: make npm c="run dev"
+     - Tests: make test-backend, make test-frontend, make test-e2e, make test
+
+5) Clean Code (SOLID, DRY, YAGNI)
+   - Small, cohesive functions and classes; one responsibility.
+   - Prefer composition over inheritance. Prefer pure functions, early returns, guard clauses.
+   - No magic numbers/strings; extract constants/value objects.
+   - Avoid duplication; extract helpers carefully; don’t over-abstract.
+   - Optimize for readability; expressive names; clear boundaries.
+
+Backend (PHP, Symfony) rules
+- declare(strict_types=1) in all PHP files. Use typed properties/params/returns everywhere.
+- Constructor DI for dependencies; no service locators; avoid static state.
+- Favor final classes by default; open only when required by design.
+- Use readonly when values don’t change after construction.
+- Prefer enums/VOs over primitive strings/ints for domain concepts.
+- Repository interfaces in domain; implementations in infrastructure.
+- Unit specs with phpspec under packages/backend/spec mirroring src; acceptance via Behat under packages/backend/features.
+- Mongo: do not hit DB in unit specs; use stubs/fakes.
+
+Frontend (Next.js, TypeScript) rules
+- TypeScript strict, no any. Narrow types and prefer discriminated unions.
+- Functional components only; hooks for reusable logic; avoid HOCs where possible.
+- Don’t test implementation details; test visible behavior with @testing-library.
+- Stable selectors for E2E: use data-testid for Playwright when needed.
+- Co-locate feature queries/hooks/components under features/*; pages import from features.
+
+Playwright (E2E) rules
+- Run via Docker image service (make test-e2e). Do not install browsers locally.
+- Keep specs short and robust: avoid sleeps; wait for UI states; use baseURL from config.
+
+Git & Workflow rules
+- Conventional Commits enforced (commitlint). Examples:
+  - feat(scope): add Swiss tiebreaker projection
+  - fix(frontend/standings): correct OWP percentage formatting
+  - test(backend): add spec for BYE policy
+- Unit tests must pass pre-push (husky). Keep unit test runtime low.
+- Small PRs, focused scope, include/update tests and docs.
+
+Security & Ops rules
+- No secrets in source. Env via .env files (never commit) and Compose env.
+- HTTPS locally via NGINX+certs. Use provided local domains.
+- Never call external PokeAPI in unit/E2E; rely on local catalogs or test doubles.
+
+Performance rules
+- Prefer read models for heavy UI (standings, draft state). Avoid N+1 queries.
+- Cache immutable catalogs; avoid per-request PokeAPI calls.
+
+Documentation & Source of Truth
+- Vision: docs/vision.md
+- Architecture: docs/architecture/* (monorepo, backend DDD, frontend screaming, GraphQL/data)
+- Process: docs/process/tdd.md (follow Red→Green→Refactor)
+- Roadmap: docs/roadmap.md
+
+How to ask Cursor for changes
+- Always propose tests first (phpspec/Jest/Playwright), then implementation, then refactor.
+- Respect the layers and directories (DDD/Screaming). Do not place domain logic in controllers or pages.
+- Provide Dockerized commands in explanations and scripts. Update Makefile when adding new routine tasks.
+- Keep code readable and maintainable; aim for clarity over cleverness.
+
+Non-negotiables (reject if requested otherwise)
+- Requests to bypass tests or run non-Docker commands should be declined or rewritten to use Make/Docker.
+- Requests to place business logic outside domain/application layers should be declined.
+- Requests to skip Conventional Commits or push without tests should be declined.
+
