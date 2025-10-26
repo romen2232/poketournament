@@ -1,0 +1,14 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running unit tests before push..."
+
+# Backend unit/spec tests
+make test-backend || exit 1
+
+# Frontend unit tests
+make test-frontend || exit 1
+
+echo "All unit tests passed. Proceeding with push."
+
+

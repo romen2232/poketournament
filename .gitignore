@@ -70,3 +70,6 @@ frontend/.env.production.local
 .idea/
 .vscode/
 .DS_Store
+
+# Root Node tooling
+node_modules/
