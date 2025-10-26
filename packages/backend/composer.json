@@ -8,6 +8,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "mongodb/mongodb": "^2.1",
+        "poketournament/core": "@dev",
         "symfony/asset": "7.3.*",
         "symfony/console": "7.3.*",
         "symfony/dotenv": "7.3.*",
@@ -35,6 +36,15 @@
             "App\\": "src/"
         }
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "/var/www/core",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "autoload-dev": {
         "psr-4": {
             "App\\Tests\\": "tests/"
@@ -85,5 +95,24 @@
         "friends-of-behat/symfony-extension": "^2.6",
         "phpspec/phpspec": "^8.0",
         "symfony/var-dumper": "7.3.*"
+    },
+    "require": {
+        "php": ">=8.2",
+        "ext-ctype": "*",
+        "ext-iconv": "*",
+        "mongodb/mongodb": "^2.1",
+        "symfony/asset": "7.3.*",
+        "symfony/console": "7.3.*",
+        "symfony/dotenv": "7.3.*",
+        "symfony/flex": "^2",
+        "symfony/framework-bundle": "7.3.*",
+        "symfony/http-client": "7.3.*",
+        "symfony/runtime": "7.3.*",
+        "symfony/security-bundle": "7.3.*",
+        "symfony/serializer": "7.3.*",
+        "symfony/uid": "7.3.*",
+        "symfony/validator": "7.3.*",
+        "symfony/yaml": "7.3.*",
+        "poketournament/core": "*@dev"
     }
 }

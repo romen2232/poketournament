@@ -2,3 +2,8 @@ suites:
   default:
     namespace: App
     psr4_prefix: App
+  core:
+    namespace: Core
+    psr4_prefix: Core
+    src_path: ../core/src
+    spec_path: ../core/spec

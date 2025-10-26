@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bd3616acc6f65e951402f8a2c162441d",
+    "content-hash": "bcc537538798a99dec657083250da469",
     "packages": [
         {
             "name": "mongodb/mongodb",
@@ -82,6 +82,35 @@
                 "source": "https://github.com/mongodb/mongo-php-library/tree/2.1.1"
             },
             "time": "2025-08-13T20:50:05+00:00"
+        },
+        {
+            "name": "poketournament/core",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "/var/www/core",
+                "reference": "c71bef0f688a9b0d087811da0cfd6d46b8899311"
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "phpspec/phpspec": "^8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Core\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "PokeTournament domain core (DDD)",
+            "transport-options": {
+                "symlink": true,
+                "relative": false
+            }
         },
         {
             "name": "psr/cache",
@@ -5782,7 +5811,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "poketournament/core": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

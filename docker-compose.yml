@@ -15,6 +15,7 @@ services:
       MONGODB_URL: "mongodb://admin:admin@mongo:27017/poketournament?authSource=admin"
     volumes:
       - ./packages/backend:/var/www/backend
+      - ./packages/core:/var/www/core
       - composer-cache:/tmp/composer
     depends_on:
       - mongo

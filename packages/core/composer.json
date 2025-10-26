@@ -1,0 +1,20 @@
+{
+  "name": "poketournament/core",
+  "description": "PokeTournament domain core (DDD)",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Core\\": "src/"
+    }
+  },
+  "require-dev": {
+    "phpspec/phpspec": "^8.0"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
+
