@@ -12,6 +12,7 @@ Use this as the single source of truth for planning, onboarding, and implementat
 - Frontend Architecture (Next.js + Screaming Architecture) — see `docs/architecture/frontend-screaming.md`
 - GraphQL API and Data Model (Mongo) — see `docs/architecture/graphql-and-data-model.md`
 - Roadmap & Definition of Done — see `docs/roadmap.md`
+- TDD Guide — see `docs/process/tdd.md`
 
 ## Quick Notes
 
