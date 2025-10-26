@@ -14,7 +14,7 @@ services:
       PHP_IDE_CONFIG: "serverName=api.poketournament.local"
       MONGODB_URL: "mongodb://admin:admin@mongo:27017/poketournament?authSource=admin"
     volumes:
-      - ./backend:/var/www/backend
+      - ./packages/backend:/var/www/backend
       - composer-cache:/tmp/composer
     depends_on:
       - mongo
@@ -31,7 +31,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./backend:/var/www/backend:ro
+      - ./packages/backend:/var/www/backend:ro
       - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./infra/nginx/certs:/etc/nginx/certs:ro
     networks:
@@ -47,7 +47,7 @@ services:
       # If you make server-side requests in Next.js via fetch/axios, you can use the public URL above.
       # Or inside Docker you can also target http://php-fpm if you prefer internal calls.
     volumes:
-      - ./frontend:/var/www/frontend
+      - ./packages/frontend:/var/www/frontend
       - node-modules:/var/www/frontend/node_modules
     expose:
       - "3000"
@@ -95,7 +95,7 @@ services:
     environment:
       CI: "1"
     volumes:
-      - ./frontend:/var/www/frontend
+      - ./packages/frontend:/var/www/frontend
       - /dev/shm:/dev/shm
     networks:
       - appnet
