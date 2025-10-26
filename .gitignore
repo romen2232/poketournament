@@ -53,3 +53,20 @@
 
 # NGNEX Certs
 /infra/nginx/certs/*
+
+### Frontend (Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+frontend/.turbo/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+### Editors
+.idea/
+.vscode/
+.DS_Store

@@ -47,8 +47,8 @@ services:
       # If you make server-side requests in Next.js via fetch/axios, you can use the public URL above.
       # Or inside Docker you can also target http://php-fpm if you prefer internal calls.
     volumes:
-      - ./frontend:/app
-      - node-modules:/app/node_modules
+      - ./frontend:/var/www/frontend
+      - node-modules:/var/www/frontend/node_modules
     expose:
       - "3000"
     networks:
@@ -84,6 +84,23 @@ services:
       - mongo
     networks:
       - appnet
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.56.1-jammy
+    container_name: playwright
+    profiles: ["test"]
+    working_dir: /var/www/frontend
+    depends_on:
+      - nginx
+    environment:
+      CI: "1"
+    volumes:
+      - ./frontend:/var/www/frontend
+      - /dev/shm:/dev/shm
+    networks:
+      - appnet
+    command:
+      ["bash", "-lc", "npm ci --silent && npx playwright test --reporter=list"]
 
 volumes:
   mongo-data:

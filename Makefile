@@ -31,6 +31,26 @@ ps:
 	docker compose ps
 
 # ---------------------------
+# Tests
+# ---------------------------
+test-backend:
+	docker compose exec -T $(BACKEND) php vendor/bin/phpspec run -f dot
+
+spec:
+	docker compose exec -T $(BACKEND) php vendor/bin/phpspec run -f dot
+
+behat:
+	docker compose exec -T $(BACKEND) php vendor/bin/behat
+
+test-frontend:
+	docker compose exec -T $(FRONTEND) npm test --silent -- --runInBand
+
+test-e2e:
+	docker compose run --rm --no-TTY playwright
+
+test: test-backend test-frontend
+
+# ---------------------------
 # First-time setup
 # ---------------------------
 setup: certs build
