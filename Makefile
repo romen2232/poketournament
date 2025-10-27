@@ -34,7 +34,7 @@ ps:
 # Tests
 # ---------------------------
 test-backend:
-	docker compose exec -T $(BACKEND) php vendor/bin/phpspec run -f dot
+	docker compose exec -T $(BACKEND) bash -lc "cd /var/www/backend && php vendor/bin/phpspec run -f dot"
 
 spec:
 	docker compose exec -T $(BACKEND) php vendor/bin/phpspec run -f dot

@@ -109,4 +109,54 @@ final class SwissPairingServiceSpec extends ObjectBehavior
             }
         });
     }
+
+    public function it_floats_leftover_and_pairs_with_next_group(): void
+    {
+        $players = ['A', 'B', 'C', 'D', 'E'];
+        $scores = ['A' => 3, 'B' => 3, 'C' => 3, 'D' => 0, 'E' => 0];
+        $opponents = ['A' => ['B'], 'B' => ['A']];
+        $this->beConstructedWith();
+        $pairs = $this->pair($players, $scores, ['opponents' => $opponents]);
+        $pairs->shouldBeArray();
+        $this->shouldSatisfy(function () use ($pairs) {
+            $pairCount = 0;
+            $hasBye = false;
+            foreach ($pairs->getWrappedObject() as $p) {
+                if (isset($p['bye'])) {
+                    $hasBye = true;
+                }
+                if (isset($p['p1']) && isset($p['p2'])) {
+                    $pairCount++;
+                }
+            }
+            if ($hasBye) {
+                throw new \RuntimeException('Did not expect BYE with 5 players');
+            }
+            if ($pairCount !== 2) {
+                throw new \RuntimeException('Unexpected pairing count');
+            }
+        });
+    }
+
+    public function it_handles_all_had_bye_fallback(): void
+    {
+        $players = ['A', 'B', 'C'];
+        $scores = ['A' => 2, 'B' => 1, 'C' => 0];
+        $byes = ['A', 'B', 'C'];
+        $this->beConstructedWith();
+        $pairs = $this->pair($players, $scores, ['byes' => $byes]);
+        $pairs->shouldBeArray();
+        $this->shouldSatisfy(function () use ($pairs) {
+            $found = false;
+            foreach ($pairs->getWrappedObject() as $p) {
+                if (isset($p['bye'])) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                throw new \RuntimeException('Expected a BYE assignment');
+            }
+        });
+    }
 }

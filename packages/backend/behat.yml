@@ -5,5 +5,8 @@ default:
         - features
       contexts:
         - FeatureContext
+        - Context\RequestContext
+        - Context\HttpContext
+        - Context\JsonContentContext
   extensions:
     FriendsOfBehat\SymfonyExtension: ~
