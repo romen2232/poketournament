@@ -71,6 +71,17 @@ final class SchemaFactory
             ],
         ]);
 
+        $byeType = new ObjectType([
+            'name' => 'Bye',
+            'fields' => [
+                'tournamentId' => Type::nonNull(Type::string()),
+                'round' => Type::nonNull(Type::int()),
+                'player' => Type::nonNull(Type::string()),
+                'status' => Type::nonNull(Type::string()),
+                'updatedAt' => Type::string(),
+            ],
+        ]);
+
         // Input types
         $scoreInput = new \GraphQL\Type\Definition\InputObjectType([
             'name' => 'ScoreInput',
@@ -190,6 +201,24 @@ final class SchemaFactory
                         return $doc;
                     },
                 ],
+                'recordBye' => [
+                    'type' => $byeType,
+                    'args' => [
+                        'tournamentId' => Type::nonNull(Type::string()),
+                        'round' => Type::nonNull(Type::int()),
+                        'player' => Type::nonNull(Type::string()),
+                    ],
+                    'resolve' => function ($root, array $args): array {
+                        $doc = $this->matches->recordBye($args['tournamentId'], (int)$args['round'], $args['player']);
+                        return [
+                            'tournamentId' => $doc['tournamentId'],
+                            'round' => $doc['round'],
+                            'player' => $doc['bye'],
+                            'status' => $doc['status'],
+                            'updatedAt' => $doc['updatedAt'] ?? null,
+                        ];
+                    },
+                ],
             ],
         ]);
 
@@ -199,6 +228,7 @@ final class SchemaFactory
                 'pair' => [
                     'type' => Type::nonNull(Type::listOf($pairingType)),
                     'args' => [
+                        'tournamentId' => Type::string(),
                         'players' => Type::nonNull(Type::listOf(Type::nonNull(Type::string()))),
                         'scores' => Type::nonNull(Type::listOf(Type::nonNull($scoreInput))),
                         'byes' => Type::listOf(Type::nonNull(Type::string())),
@@ -215,10 +245,19 @@ final class SchemaFactory
                                 $opponentsMap[$row['player']] = $row['opponents'];
                             }
                         }
+                        $byes = $args['byes'] ?? [];
+                        if (!empty($args['tournamentId'])) {
+                            try {
+                                $persisted = $this->matches->getByesByTournament($args['tournamentId']);
+                            } catch (\Throwable $e) {
+                                $persisted = [];
+                            }
+                            $byes = array_values(array_unique(array_merge($byes, $persisted)));
+                        }
                         return $this->pairing->generate(
                             $args['players'],
                             $scoresMap,
-                            ['byes' => $args['byes'] ?? [], 'opponents' => $opponentsMap]
+                            ['byes' => $byes, 'opponents' => $opponentsMap]
                         );
                     },
                 ],

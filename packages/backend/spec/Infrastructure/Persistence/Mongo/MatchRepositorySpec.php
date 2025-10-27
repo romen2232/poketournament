@@ -70,4 +70,28 @@ final class MatchRepositorySpec extends ObjectBehavior
 
         $this->override('T1', 2, 'C', 'D', 'D')->shouldBeArray();
     }
+
+    public function it_records_bye(Collection $collection): void
+    {
+        $collection->updateOne(
+            [
+                'tournamentId' => 'T1',
+                'round' => 3,
+                'bye' => 'X',
+            ],
+            Argument::that(function ($set) {
+                return isset($set['$set']) && $set['$set']['status'] === 'BYE' && $set['$set']['bye'] === 'X';
+            }),
+            ['upsert' => true]
+        )->shouldBeCalled();
+        $this->recordBye('T1', 3, 'X')->shouldBeArray();
+    }
+
+    public function it_checks_if_player_has_bye(Collection $collection): void
+    {
+        $collection->countDocuments(['tournamentId' => 'T1', 'bye' => 'A'])->willReturn(1);
+        $this->hasBye('T1', 'A')->shouldReturn(true);
+        $collection->countDocuments(['tournamentId' => 'T1', 'bye' => 'B'])->willReturn(0);
+        $this->hasBye('T1', 'B')->shouldReturn(false);
+    }
 }

@@ -57,6 +57,60 @@ final class MatchRepository
     }
 
     /**
+     * Record a BYE assignment as a match-like document
+     */
+    public function recordBye(string $tournamentId, int $round, string $player): array
+    {
+        $doc = [
+            'tournamentId' => $tournamentId,
+            'round' => $round,
+            'bye' => $player,
+            'status' => 'BYE',
+            'updatedAt' => (new \DateTimeImmutable('now'))->format(DATE_ATOM),
+        ];
+        $this->collection->updateOne(
+            [
+                'tournamentId' => $tournamentId,
+                'round' => $round,
+                'bye' => $player,
+            ],
+            ['$set' => $doc],
+            ['upsert' => true]
+        );
+        return $doc;
+    }
+
+    /**
+     * Fast check for BYE eligibility
+     */
+    public function hasBye(string $tournamentId, string $player): bool
+    {
+        return $this->collection->countDocuments([
+            'tournamentId' => $tournamentId,
+            'bye' => $player,
+        ]) > 0;
+    }
+
+    /**
+     * @return string[] players who already had a BYE
+     */
+    public function getByesByTournament(string $tournamentId): array
+    {
+        $cursor = $this->collection->find([
+            'tournamentId' => $tournamentId,
+            'bye' => ['$exists' => true],
+        ], ['projection' => ['bye' => 1]]);
+        $players = [];
+        foreach ($cursor as $doc) {
+            $row = $doc->getArrayCopy();
+            if (isset($row['bye']) && is_string($row['bye'])) {
+                $players[$row['bye']] = true;
+            }
+        }
+        return array_keys($players);
+    }
+
+    /**
      * @return array<int,array<string,mixed>>
      */
     public function list(string $tournamentId, ?int $round = null): array

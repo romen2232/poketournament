@@ -20,6 +20,8 @@ final class GraphQLContext implements Context
     /** @var array<string,int> */
     private array $randKey = [];
     private ?string $tournamentId = null;
+    /** @var string[] */
+    private array $byes = [];
 
     public function __construct()
     {
@@ -71,10 +73,12 @@ final class GraphQLContext implements Context
             $opponentsList[] = ['player' => $p, 'opponents' => $ops];
         }
         $payload = [
-            'query' => 'query P($players:[String!]!, $scores:[ScoreInput!]!, $opponents:[OpponentInput!]){ pair(players:$players, scores:$scores, opponents:$opponents){ p1 p2 bye } }',
+            'query' => 'query P($tid:String, $players:[String!]!, $scores:[ScoreInput!]!, $byes:[String!], $opponents:[OpponentInput!]){ pair(tournamentId:$tid, players:$players, scores:$scores, byes:$byes, opponents:$opponents){ p1 p2 bye } }',
             'variables' => [
+                'tid' => $this->tournamentId,
                 'players' => $this->players,
                 'scores' => $scoresList,
+                'byes' => $this->byes,
                 'opponents' => $opponentsList,
             ],
         ];
@@ -189,6 +193,22 @@ final class GraphQLContext implements Context
             'variables' => [ 'tid' => $this->tournamentId ?? 'T1', 'r' => $round, 'p1' => $p1, 'p2' => $p2, 'w' => $winner ],
         ];
         $this->postGraphQL($payload);
+    }
+
+    /**
+     * @When I record a bye for :player in round :round
+     */
+    public function iRecordBye(string $player, int $round): void
+    {
+        $payload = [
+            'query' => 'mutation B($tid:String!, $r:Int!, $p:String!){ recordBye(tournamentId:$tid, round:$r, player:$p){ tournamentId round player status } }',
+            'variables' => [ 'tid' => $this->tournamentId ?? 'T1', 'r' => $round, 'p' => $player ],
+        ];
+        $this->postGraphQL($payload);
+        // track locally for subsequent pairing query
+        if (!in_array($player, $this->byes, true)) {
+            $this->byes[] = $player;
+        }
     }
 
     /**
