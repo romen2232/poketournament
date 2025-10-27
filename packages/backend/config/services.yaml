@@ -12,6 +12,15 @@ services:
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
     Core\Swiss\SwissPairingService: ~
     App\Application\Swiss\PairingService: ~
+    Core\Swiss\StandingsCalculator: ~
+
+    App\Infrastructure\Http\GraphQLController:
+        public: true
+        autowire: true
+        autoconfigure: true
+        tags: ['controller.service_arguments']
+
+    App\Infrastructure\GraphQL\SchemaFactory: ~
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
