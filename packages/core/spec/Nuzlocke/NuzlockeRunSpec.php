@@ -21,4 +21,10 @@ final class NuzlockeRunSpec extends ObjectBehavior
         $this->setStatus('Route 1', 'DEAD');
         $this->encounters()[0]->status()->shouldBe('DEAD');
     }
+
+    public function it_throws_when_setting_status_for_unknown_route(): void
+    {
+        $this->beConstructedWith('Run');
+        $this->shouldThrow(\InvalidArgumentException::class)->during('setStatus', ['Unknown', 'ALIVE']);
+    }
 }

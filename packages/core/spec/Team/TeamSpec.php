@@ -20,4 +20,13 @@ final class TeamSpec extends ObjectBehavior
         $this->sets()->shouldHaveCount(6);
         $this->shouldThrow(\LogicException::class)->during('addSet', [new PokemonSet('P7')]);
     }
+
+    public function it_preserves_insertion_order(): void
+    {
+        $this->beConstructedWith('Order');
+        $this->addSet(new PokemonSet('P1'));
+        $this->addSet(new PokemonSet('P2'));
+        $this->sets()[0]->uid->shouldBe('P1');
+        $this->sets()[1]->uid->shouldBe('P2');
+    }
 }

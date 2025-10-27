@@ -25,7 +25,7 @@ final class MatchRepository
             'p2' => $p2,
             'winner' => $winner,
             'status' => 'REPORTED',
-            'updatedAt' => (new \DateTimeImmutable('now'))->__toString(),
+            'updatedAt' => (new \DateTimeImmutable('now'))->format(DATE_ATOM),
         ];
         $this->collection->updateOne(
             [
@@ -51,7 +51,7 @@ final class MatchRepository
                 'p1' => $p1,
                 'p2' => $p2,
             ],
-            ['$set' => ['status' => 'OVERRIDDEN', 'updatedAt' => (new \DateTimeImmutable('now'))->__toString()]]
+            ['$set' => ['status' => 'OVERRIDDEN', 'updatedAt' => (new \DateTimeImmutable('now'))->format(DATE_ATOM)]]
         );
         return $doc;
     }

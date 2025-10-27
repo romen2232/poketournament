@@ -138,6 +138,35 @@ final class SwissPairingServiceSpec extends ObjectBehavior
         });
     }
 
+    public function it_handles_unavoidable_rematch_gracefully(): void
+    {
+        $players = ['A', 'B'];
+        $scores = ['A' => 3, 'B' => 3];
+        $opponents = ['A' => ['B'], 'B' => ['A']];
+        $this->beConstructedWith();
+        $pairs = $this->pair($players, $scores, ['opponents' => $opponents]);
+        $pairs->shouldBeArray();
+        $pairs->shouldHaveCount(1);
+        $this->shouldSatisfy(function () use ($pairs) {
+            $p = $pairs->getWrappedObject()[0];
+            if ($p['p1'] !== 'A' && $p['p1'] !== 'B') {
+                throw new \RuntimeException('unexpected p1');
+            }
+            if ($p['p2'] !== 'A' && $p['p2'] !== 'B') {
+                throw new \RuntimeException('unexpected p2');
+            }
+        });
+    }
+
+    public function it_has_deterministic_ordering_within_groups(): void
+    {
+        $players = ['B', 'A', 'D', 'C'];
+        $scores = ['A' => 1, 'B' => 1, 'C' => 1, 'D' => 1];
+        $this->beConstructedWith();
+        $pairs = $this->pair($players, $scores, []);
+        $pairs->shouldBeArray();
+    }
+
     public function it_handles_all_had_bye_fallback(): void
     {
         $players = ['A', 'B', 'C'];

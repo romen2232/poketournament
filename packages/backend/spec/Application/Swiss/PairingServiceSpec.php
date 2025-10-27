@@ -23,5 +23,13 @@ final class PairingServiceSpec extends ObjectBehavior
 
         $this->generate($players, $scores, [])->shouldReturn($expected);
     }
-}
 
+    public function it_forwards_opponents_option(CoreSwissPairingService $core): void
+    {
+        $players = ['A', 'B'];
+        $scores = ['A' => 0, 'B' => 0];
+        $opts = ['opponents' => ['A' => ['B']]];
+        $core->pair($players, $scores, $opts)->willReturn([['p1' => 'A', 'p2' => 'B']]);
+        $this->generate($players, $scores, $opts)->shouldBeArray();
+    }
+}

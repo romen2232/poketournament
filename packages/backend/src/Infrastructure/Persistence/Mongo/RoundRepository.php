@@ -22,7 +22,7 @@ final class RoundRepository
             'tournamentId' => $tournamentId,
             'round' => $round,
             'status' => 'OPEN',
-            'openedAt' => (new \DateTimeImmutable('now'))->__toString(),
+            'openedAt' => (new \DateTimeImmutable('now'))->format(DATE_ATOM),
         ];
         $this->collection->updateOne(
             ['tournamentId' => $tournamentId, 'round' => $round],
@@ -38,7 +38,7 @@ final class RoundRepository
             'tournamentId' => $tournamentId,
             'round' => $round,
             'status' => 'CLOSED',
-            'closedAt' => (new \DateTimeImmutable('now'))->__toString(),
+            'closedAt' => (new \DateTimeImmutable('now'))->format(DATE_ATOM),
         ];
         $this->collection->updateOne(
             ['tournamentId' => $tournamentId, 'round' => $round],
