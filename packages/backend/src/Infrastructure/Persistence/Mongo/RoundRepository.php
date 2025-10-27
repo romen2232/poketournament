@@ -31,4 +31,20 @@ final class RoundRepository
         );
         return $doc;
     }
+
+    public function close(string $tournamentId, int $round): array
+    {
+        $doc = [
+            'tournamentId' => $tournamentId,
+            'round' => $round,
+            'status' => 'CLOSED',
+            'closedAt' => (new \DateTimeImmutable('now'))->__toString(),
+        ];
+        $this->collection->updateOne(
+            ['tournamentId' => $tournamentId, 'round' => $round],
+            ['$set' => $doc],
+            ['upsert' => true]
+        );
+        return $doc;
+    }
 }

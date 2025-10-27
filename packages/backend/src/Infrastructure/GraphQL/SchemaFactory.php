@@ -96,6 +96,23 @@ final class SchemaFactory
                         return $this->rounds->open($args['tournamentId'], (int)$args['round']);
                     },
                 ],
+                'closeRound' => [
+                    'type' => new ObjectType([
+                        'name' => 'ClosedRound',
+                        'fields' => [
+                            'tournamentId' => Type::nonNull(Type::string()),
+                            'round' => Type::nonNull(Type::int()),
+                            'status' => Type::nonNull(Type::string()),
+                        ],
+                    ]),
+                    'args' => [
+                        'tournamentId' => Type::nonNull(Type::string()),
+                        'round' => Type::nonNull(Type::int()),
+                    ],
+                    'resolve' => function ($root, array $args): array {
+                        return $this->rounds->close($args['tournamentId'], (int)$args['round']);
+                    },
+                ],
                 'reportResult' => [
                     'type' => new ObjectType([
                         'name' => 'Match',
@@ -117,6 +134,35 @@ final class SchemaFactory
                     ],
                     'resolve' => function ($root, array $args): array {
                         return $this->matches->report(
+                            $args['tournamentId'],
+                            (int)$args['round'],
+                            $args['p1'],
+                            $args['p2'],
+                            $args['winner']
+                        );
+                    },
+                ],
+                'overrideResult' => [
+                    'type' => new ObjectType([
+                        'name' => 'OverriddenMatch',
+                        'fields' => [
+                            'tournamentId' => Type::nonNull(Type::string()),
+                            'round' => Type::nonNull(Type::int()),
+                            'p1' => Type::nonNull(Type::string()),
+                            'p2' => Type::nonNull(Type::string()),
+                            'winner' => Type::nonNull(Type::string()),
+                            'status' => Type::nonNull(Type::string()),
+                        ],
+                    ]),
+                    'args' => [
+                        'tournamentId' => Type::nonNull(Type::string()),
+                        'round' => Type::nonNull(Type::int()),
+                        'p1' => Type::nonNull(Type::string()),
+                        'p2' => Type::nonNull(Type::string()),
+                        'winner' => Type::nonNull(Type::string()),
+                    ],
+                    'resolve' => function ($root, array $args): array {
+                        return $this->matches->override(
                             $args['tournamentId'],
                             (int)$args['round'],
                             $args['p1'],

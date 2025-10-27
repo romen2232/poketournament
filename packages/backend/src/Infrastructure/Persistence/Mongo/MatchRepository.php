@@ -39,4 +39,20 @@ final class MatchRepository
         );
         return $doc;
     }
+
+    public function override(string $tournamentId, int $round, string $p1, string $p2, string $winner): array
+    {
+        $doc = $this->report($tournamentId, $round, $p1, $p2, $winner);
+        $doc['status'] = 'OVERRIDDEN';
+        $this->collection->updateOne(
+            [
+                'tournamentId' => $tournamentId,
+                'round' => $round,
+                'p1' => $p1,
+                'p2' => $p2,
+            ],
+            ['$set' => ['status' => 'OVERRIDDEN', 'updatedAt' => (new \DateTimeImmutable('now'))->__toString()]]
+        );
+        return $doc;
+    }
 }

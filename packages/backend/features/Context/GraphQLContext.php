@@ -168,6 +168,30 @@ final class GraphQLContext implements Context
     }
 
     /**
+     * @When I close round :round
+     */
+    public function iCloseRound(int $round): void
+    {
+        $payload = [
+            'query' => 'mutation C($tid:String!, $r:Int!){ closeRound(tournamentId:$tid, round:$r){ tournamentId round status } }',
+            'variables' => [ 'tid' => $this->tournamentId ?? 'T1', 'r' => $round ],
+        ];
+        $this->postGraphQL($payload);
+    }
+
+    /**
+     * @When I override result :p1 vs :p2 winner :winner in round :round
+     */
+    public function iOverrideResult(string $p1, string $p2, string $winner, int $round): void
+    {
+        $payload = [
+            'query' => 'mutation O($tid:String!, $r:Int!, $p1:String!, $p2:String!, $w:String!){ overrideResult(tournamentId:$tid, round:$r, p1:$p1, p2:$p2, winner:$w){ tournamentId round p1 p2 winner status } }',
+            'variables' => [ 'tid' => $this->tournamentId ?? 'T1', 'r' => $round, 'p1' => $p1, 'p2' => $p2, 'w' => $winner ],
+        ];
+        $this->postGraphQL($payload);
+    }
+
+    /**
      * @param array<string,mixed> $payload
      */
     private function postGraphQL(array $payload): void
