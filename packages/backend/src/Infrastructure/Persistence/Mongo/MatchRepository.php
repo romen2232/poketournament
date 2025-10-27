@@ -55,4 +55,23 @@ final class MatchRepository
         );
         return $doc;
     }
+
+    /**
+     * @return array<int,array<string,mixed>>
+     */
+    public function list(string $tournamentId, ?int $round = null): array
+    {
+        $filter = ['tournamentId' => $tournamentId];
+        if ($round !== null) {
+            $filter['round'] = $round;
+        }
+        $cursor = $this->collection->find($filter, ['sort' => ['round' => 1, 'updatedAt' => 1]]);
+        $rows = [];
+        foreach ($cursor as $doc) {
+            $row = $doc->getArrayCopy();
+            unset($row['_id']);
+            $rows[] = $row;
+        }
+        return $rows;
+    }
 }

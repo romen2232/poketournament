@@ -24,7 +24,8 @@ final class GraphQLController
         $query = $payload['query'] ?? '';
         $variables = $payload['variables'] ?? [];
         $schema = $this->schemaFactory->create();
-        $result = GraphQL::executeQuery($schema, $query, null, null, $variables);
+        $context = ['request' => $request];
+        $result = GraphQL::executeQuery($schema, $query, null, $context, $variables);
         $output = $result->toArray(DebugFlag::INCLUDE_DEBUG_MESSAGE | DebugFlag::INCLUDE_TRACE);
         return new JsonResponse($output);
     }

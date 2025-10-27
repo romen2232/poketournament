@@ -47,4 +47,19 @@ final class RoundRepository
         );
         return $doc;
     }
+
+    /**
+     * @return array<int,array<string,mixed>>
+     */
+    public function findByTournament(string $tournamentId): array
+    {
+        $cursor = $this->collection->find(['tournamentId' => $tournamentId], ['sort' => ['round' => 1]]);
+        $rows = [];
+        foreach ($cursor as $doc) {
+            $row = $doc->getArrayCopy();
+            unset($row['_id']);
+            $rows[] = $row;
+        }
+        return $rows;
+    }
 }

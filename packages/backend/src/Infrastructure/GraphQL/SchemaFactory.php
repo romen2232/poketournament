@@ -11,6 +11,7 @@ use App\Infrastructure\Persistence\Mongo\MatchRepository;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
+use Symfony\Component\HttpFoundation\Request;
 
 final class SchemaFactory
 {
@@ -41,6 +42,32 @@ final class SchemaFactory
                 'oppWinPct' => Type::nonNull(Type::float()),
                 'directWins' => Type::nonNull(Type::int()),
                 'randKey' => Type::nonNull(Type::int()),
+            ],
+        ]);
+
+        $roundType = new ObjectType([
+            'name' => 'Round',
+            'fields' => [
+                'tournamentId' => Type::nonNull(Type::string()),
+                'round' => Type::nonNull(Type::int()),
+                'status' => Type::nonNull(Type::string()),
+                'openedAt' => Type::string(),
+                'closedAt' => Type::string(),
+                'closedBy' => Type::string(),
+            ],
+        ]);
+
+        $matchType = new ObjectType([
+            'name' => 'Match',
+            'fields' => [
+                'tournamentId' => Type::nonNull(Type::string()),
+                'round' => Type::nonNull(Type::int()),
+                'p1' => Type::nonNull(Type::string()),
+                'p2' => Type::nonNull(Type::string()),
+                'winner' => Type::nonNull(Type::string()),
+                'status' => Type::nonNull(Type::string()),
+                'updatedAt' => Type::string(),
+                'overriddenBy' => Type::string(),
             ],
         ]);
 
@@ -76,55 +103,52 @@ final class SchemaFactory
             ],
         ]);
 
+        $isAdmin = function ($context): bool {
+            $req = $context['request'] ?? null;
+            if (!$req instanceof Request) {
+                return false;
+            }
+            return (string)$req->headers->get('X-Admin', '0') === '1';
+        };
+        $actorId = function ($context): ?string {
+            $req = $context['request'] ?? null;
+            if (!$req instanceof Request) {
+                return null;
+            }
+            return $req->headers->get('X-Actor');
+        };
+
         $mutation = new ObjectType([
             'name' => 'Mutation',
             'fields' => [
                 'openRound' => [
-                    'type' => new ObjectType([
-                        'name' => 'Round',
-                        'fields' => [
-                            'tournamentId' => Type::nonNull(Type::string()),
-                            'round' => Type::nonNull(Type::int()),
-                            'status' => Type::nonNull(Type::string()),
-                        ],
-                    ]),
+                    'type' => $roundType,
                     'args' => [
                         'tournamentId' => Type::nonNull(Type::string()),
                         'round' => Type::nonNull(Type::int()),
                     ],
-                    'resolve' => function ($root, array $args): array {
-                        return $this->rounds->open($args['tournamentId'], (int)$args['round']);
+                    'resolve' => function ($root, array $args) use ($actorId): array {
+                        $doc = $this->rounds->open($args['tournamentId'], (int)$args['round']);
+                        return $doc;
                     },
                 ],
                 'closeRound' => [
-                    'type' => new ObjectType([
-                        'name' => 'ClosedRound',
-                        'fields' => [
-                            'tournamentId' => Type::nonNull(Type::string()),
-                            'round' => Type::nonNull(Type::int()),
-                            'status' => Type::nonNull(Type::string()),
-                        ],
-                    ]),
+                    'type' => $roundType,
                     'args' => [
                         'tournamentId' => Type::nonNull(Type::string()),
                         'round' => Type::nonNull(Type::int()),
                     ],
-                    'resolve' => function ($root, array $args): array {
-                        return $this->rounds->close($args['tournamentId'], (int)$args['round']);
+                    'resolve' => function ($root, array $args, $context) use ($isAdmin, $actorId): array {
+                        if (!$isAdmin($context)) {
+                            throw new \RuntimeException('Forbidden');
+                        }
+                        $doc = $this->rounds->close($args['tournamentId'], (int)$args['round']);
+                        $doc['closedBy'] = $actorId($context);
+                        return $doc;
                     },
                 ],
                 'reportResult' => [
-                    'type' => new ObjectType([
-                        'name' => 'Match',
-                        'fields' => [
-                            'tournamentId' => Type::nonNull(Type::string()),
-                            'round' => Type::nonNull(Type::int()),
-                            'p1' => Type::nonNull(Type::string()),
-                            'p2' => Type::nonNull(Type::string()),
-                            'winner' => Type::nonNull(Type::string()),
-                            'status' => Type::nonNull(Type::string()),
-                        ],
-                    ]),
+                    'type' => $matchType,
                     'args' => [
                         'tournamentId' => Type::nonNull(Type::string()),
                         'round' => Type::nonNull(Type::int()),
@@ -143,17 +167,7 @@ final class SchemaFactory
                     },
                 ],
                 'overrideResult' => [
-                    'type' => new ObjectType([
-                        'name' => 'OverriddenMatch',
-                        'fields' => [
-                            'tournamentId' => Type::nonNull(Type::string()),
-                            'round' => Type::nonNull(Type::int()),
-                            'p1' => Type::nonNull(Type::string()),
-                            'p2' => Type::nonNull(Type::string()),
-                            'winner' => Type::nonNull(Type::string()),
-                            'status' => Type::nonNull(Type::string()),
-                        ],
-                    ]),
+                    'type' => $matchType,
                     'args' => [
                         'tournamentId' => Type::nonNull(Type::string()),
                         'round' => Type::nonNull(Type::int()),
@@ -161,14 +175,19 @@ final class SchemaFactory
                         'p2' => Type::nonNull(Type::string()),
                         'winner' => Type::nonNull(Type::string()),
                     ],
-                    'resolve' => function ($root, array $args): array {
-                        return $this->matches->override(
+                    'resolve' => function ($root, array $args, $context) use ($isAdmin, $actorId): array {
+                        if (!$isAdmin($context)) {
+                            throw new \RuntimeException('Forbidden');
+                        }
+                        $doc = $this->matches->override(
                             $args['tournamentId'],
                             (int)$args['round'],
                             $args['p1'],
                             $args['p2'],
                             $args['winner']
                         );
+                        $doc['overriddenBy'] = $actorId($context);
+                        return $doc;
                     },
                 ],
             ],
@@ -217,6 +236,25 @@ final class SchemaFactory
                             }
                         }
                         return $this->standings->compute($args['matches'], $rand);
+                    },
+                ],
+                'listRounds' => [
+                    'type' => Type::nonNull(Type::listOf($roundType)),
+                    'args' => [
+                        'tournamentId' => Type::nonNull(Type::string()),
+                    ],
+                    'resolve' => function ($root, array $args): array {
+                        return $this->rounds->findByTournament($args['tournamentId']);
+                    },
+                ],
+                'listMatches' => [
+                    'type' => Type::nonNull(Type::listOf($matchType)),
+                    'args' => [
+                        'tournamentId' => Type::nonNull(Type::string()),
+                        'round' => Type::int(),
+                    ],
+                    'resolve' => function ($root, array $args): array {
+                        return $this->matches->list($args['tournamentId'], isset($args['round']) ? (int)$args['round'] : null);
                     },
                 ],
             ],
