@@ -8,5 +8,6 @@ default:
         - Context\RequestContext
         - Context\HttpContext
         - Context\JsonContentContext
+        - Context\GraphQLContext
   extensions:
     FriendsOfBehat\SymfonyExtension: ~
