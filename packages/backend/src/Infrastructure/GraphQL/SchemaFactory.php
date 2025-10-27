@@ -6,6 +6,8 @@ namespace App\Infrastructure\GraphQL;
 
 use App\Application\Swiss\PairingService;
 use Core\Swiss\StandingsCalculator;
+use App\Infrastructure\Persistence\Mongo\RoundRepository;
+use App\Infrastructure\Persistence\Mongo\MatchRepository;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
@@ -14,7 +16,9 @@ final class SchemaFactory
 {
     public function __construct(
         private readonly PairingService $pairing,
-        private readonly StandingsCalculator $standings
+        private readonly StandingsCalculator $standings,
+        private readonly RoundRepository $rounds,
+        private readonly MatchRepository $matches
     ) {
     }
 
@@ -72,6 +76,58 @@ final class SchemaFactory
             ],
         ]);
 
+        $mutation = new ObjectType([
+            'name' => 'Mutation',
+            'fields' => [
+                'openRound' => [
+                    'type' => new ObjectType([
+                        'name' => 'Round',
+                        'fields' => [
+                            'tournamentId' => Type::nonNull(Type::string()),
+                            'round' => Type::nonNull(Type::int()),
+                            'status' => Type::nonNull(Type::string()),
+                        ],
+                    ]),
+                    'args' => [
+                        'tournamentId' => Type::nonNull(Type::string()),
+                        'round' => Type::nonNull(Type::int()),
+                    ],
+                    'resolve' => function ($root, array $args): array {
+                        return $this->rounds->open($args['tournamentId'], (int)$args['round']);
+                    },
+                ],
+                'reportResult' => [
+                    'type' => new ObjectType([
+                        'name' => 'Match',
+                        'fields' => [
+                            'tournamentId' => Type::nonNull(Type::string()),
+                            'round' => Type::nonNull(Type::int()),
+                            'p1' => Type::nonNull(Type::string()),
+                            'p2' => Type::nonNull(Type::string()),
+                            'winner' => Type::nonNull(Type::string()),
+                            'status' => Type::nonNull(Type::string()),
+                        ],
+                    ]),
+                    'args' => [
+                        'tournamentId' => Type::nonNull(Type::string()),
+                        'round' => Type::nonNull(Type::int()),
+                        'p1' => Type::nonNull(Type::string()),
+                        'p2' => Type::nonNull(Type::string()),
+                        'winner' => Type::nonNull(Type::string()),
+                    ],
+                    'resolve' => function ($root, array $args): array {
+                        return $this->matches->report(
+                            $args['tournamentId'],
+                            (int)$args['round'],
+                            $args['p1'],
+                            $args['p2'],
+                            $args['winner']
+                        );
+                    },
+                ],
+            ],
+        ]);
+
         $query = new ObjectType([
             'name' => 'Query',
             'fields' => [
@@ -120,6 +176,6 @@ final class SchemaFactory
             ],
         ]);
 
-        return new Schema(['query' => $query]);
+        return new Schema(['query' => $query, 'mutation' => $mutation]);
     }
 }

@@ -21,6 +21,10 @@ services:
         tags: ['controller.service_arguments']
 
     App\Infrastructure\GraphQL\SchemaFactory: ~
+    mongodb.client:
+        class: MongoDB\Client
+        arguments: ['%env(MONGODB_URL)%']
+    # (removed duplicate explicit wiring)
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -29,3 +33,14 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # Explicit repository wiring (override autodiscovery)
+    MongoDB\Client: '@mongodb.client'
+    App\Infrastructure\Persistence\Mongo\RoundRepository:
+        arguments:
+            $client: '@mongodb.client'
+            $databaseName: 'poketournament'
+    App\Infrastructure\Persistence\Mongo\MatchRepository:
+        arguments:
+            $client: '@mongodb.client'
+            $databaseName: 'poketournament'
